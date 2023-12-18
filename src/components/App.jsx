@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { Container } from './App.styled';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -8,59 +8,56 @@ import { Loader } from './Loader/Loader';
 import { Notify } from 'notiflix';
 
 const STATUS = {
-    IDLE: 'idle',
-    PENDING: 'pending',
-    REJECTED: 'rejected',
-    RESOLVED: 'resolved',
+  IDLE: 'idle',
+  PENDING: 'pending',
+  REJECTED: 'rejected',
+  RESOLVED: 'resolved',
 };
 
-class App extends Component {
-    state = {
-        images: [],
-        values: '',
-        page: 1,
-        status: STATUS.IDLE,
-    };
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [value, setValue] = useState('');
+  const [status, setStatus] = useState(STATUS.IDLE);
 
-    async componentDidUpdate(_, prevState) {
-        const { images, values, page } = this.state;
+  useEffect(() => {
+    const fetchImages = async () => {
+      const { hits, totalHits } = await API.getImages(value, page);
 
-        if (prevState.page !== page || prevState.values !== values) {
-            await API.getImages(values, page)
-                .then(({ hits, totalHits }) => {
-                    this.setState({
-                        images: [...images, ...hits],
-                        status: Math.ceil(totalHits / 12) <= page ? STATUS.IDLE : STATUS.RESOLVED,
-                    });
-                })
-                .catch(() => {
-                    Notify.failure('Oops something went wrong! Try reloading the page');
-                    this.setState({ status: STATUS.REJECTED });
-                });
-        }
-    }
-
-    updateValues = values => {
-        this.setState({ images: [], values, page: 1, status: STATUS.PENDING });
-    };
-
-    updatePage = () => {
-        this.setState(prevState => ({ page: prevState.page + 1, status: STATUS.PENDING }));
-    };
-
-    render() {
-        const { updateValues, updatePage } = this;
-        const { images, status } = this.state;
-
-        return (
-            <Container>
-                <Searchbar onSubmit={updateValues} />
-                <ImageGallery images={images} />
-                {status === STATUS.RESOLVED && <Button handleClick={updatePage} />}
-                {status === STATUS.PENDING && <Loader />}
-            </Container>
+      try {
+        setImages(prevImages => [...prevImages, ...hits]);
+        setStatus(
+          Math.ceil(totalHits / 12) <= page ? STATUS.IDLE : STATUS.RESOLVED
         );
-    }
-}
+      } catch {
+        Notify.failure('Oops something went wrong! Try reloading the page');
+        setStatus({ status: STATUS.REJECTED });
+      }
+    };
 
-export default App;
+    if (value) {
+      fetchImages();
+    }
+  }, [page, value]);
+
+  const updateValues = values => {
+    setImages([]);
+    setValue(values);
+    setPage(1);
+    setStatus(STATUS.PENDING);
+  };
+
+  const updatePage = () => {
+    setPage(prevPage => prevPage + 1);
+    setStatus(STATUS.PENDING);
+  };
+
+  return (
+    <Container>
+      <Searchbar onSubmit={updateValues} />
+      <ImageGallery images={images} />
+      {status === STATUS.RESOLVED && <Button handleClick={updatePage} />}
+      {status === STATUS.PENDING && <Loader />}
+    </Container>
+  );
+};

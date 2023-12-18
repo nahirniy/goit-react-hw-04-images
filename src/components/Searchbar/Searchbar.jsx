@@ -4,25 +4,31 @@ import { BiSearchAlt } from 'react-icons/bi';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 export const Searchbar = ({ onSubmit }) => {
-    const handleSubmit = ({ query }, action) => {
-        if (!query) {
-            return Notify.failure('You have to write something here for a successful search');
-        }
+  const handleSubmit = ({ query }, action) => {
+    if (!query) {
+      return Notify.failure(
+        'You have to write something here for a successful search'
+      );
+    }
 
-        onSubmit(query);
-        action.resetForm();
-    };
+    onSubmit(query);
+    action.resetForm();
+  };
 
-    return (
-        <SearchBar>
-            <Formik initialValues={{ query: '' }} onSubmit={handleSubmit}>
-                <Form>
-                    <Input name="query" type="text" placeholder="Search images and photos" />
-                    <Button>
-                        <BiSearchAlt />
-                    </Button>
-                </Form>
-            </Formik>
-        </SearchBar>
-    );
+  return (
+    <SearchBar>
+      <Formik initialValues={{ query: '' }} onSubmit={handleSubmit}>
+        <Form>
+          <Input
+            name="query"
+            type="text"
+            placeholder="Search images and photos"
+          />
+          <Button type="submit">
+            <BiSearchAlt />
+          </Button>
+        </Form>
+      </Formik>
+    </SearchBar>
+  );
 };
