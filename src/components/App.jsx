@@ -40,9 +40,14 @@ export const App = () => {
     }
   }, [page, value]);
 
-  const updateValues = values => {
+  const updateValues = newValue => {
+    if (newValue === value) {
+      Notify.info('You have to write new keyword...Try again!');
+      return;
+    }
+
     setImages([]);
-    setValue(values);
+    setValue(newValue);
     setPage(1);
     setStatus(STATUS.PENDING);
   };
